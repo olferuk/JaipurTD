@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jaipur</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+
+        h1 { text-align: center; color: #e6b422; margin-bottom: 0.5rem; font-size: 1.8rem; }
+
+        .scoreboard {
+            display: flex; justify-content: space-around; align-items: center;
+            background: #16213e; border-radius: 12px; padding: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        .score-item { text-align: center; }
+        .score-item .label { font-size: 0.75rem; color: #888; text-transform: uppercase; }
+        .score-item .value { font-size: 1.4rem; font-weight: bold; }
+        .score-item .value.gold { color: #e6b422; }
+
+        .zone {
+            background: #16213e; border-radius: 12px; padding: 1rem;
+            margin-bottom: 0.8rem;
+        }
+        .zone-title {
+            font-size: 0.8rem; color: #888; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 0.5rem;
+        }
+
+        .cards { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .card {
+            background: #0f3460; border-radius: 8px; padding: 0.5rem 0.7rem;
+            font-size: 1.1rem; min-width: 3rem; text-align: center;
+        }
+        .card .count { font-size: 0.7rem; color: #aaa; }
+
+        .tokens-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .token-pile {
+            background: #0f3460; border-radius: 8px; padding: 0.4rem 0.6rem;
+            font-size: 0.85rem; text-align: center;
+        }
+        .token-pile .top { font-weight: bold; color: #e6b422; }
+        .token-pile .rem { font-size: 0.65rem; color: #666; }
+
+        .actions { display: flex; flex-direction: column; gap: 0.4rem; }
+        .action-btn {
+            background: #e94560; color: white; border: none; border-radius: 8px;
+            padding: 0.6rem 1rem; font-size: 0.95rem; cursor: pointer;
+            transition: background 0.15s;
+        }
+        .action-btn:hover { background: #c73650; }
+        .action-btn.sell { background: #2d6a4f; }
+        .action-btn.sell:hover { background: #1b4332; }
+        .action-btn.exchange { background: #7b2cbf; }
+        .action-btn.exchange:hover { background: #5a189a; }
+
+        .log {
+            font-size: 0.8rem; color: #888; max-height: 10rem; overflow-y: auto;
+        }
+        .log p { padding: 0.15rem 0; border-bottom: 1px solid #222; }
+        .log .you { color: #4cc9f0; }
+        .log .ai { color: #f07167; }
+
+        .game-over-banner {
+            text-align: center; padding: 1.5rem;
+            font-size: 1.5rem; border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+        .game-over-banner.win { background: #2d6a4f; color: #b7e4c7; }
+        .game-over-banner.lose { background: #6a2d2d; color: #e4b7b7; }
+
+        .new-game-btn {
+            display: block; margin: 1rem auto; padding: 0.8rem 2rem;
+            background: #e6b422; color: #1a1a2e; border: none; border-radius: 8px;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+        }
+        .new-game-btn:hover { background: #d4a31c; }
+
+        .info-row { display: flex; gap: 1rem; margin-bottom: 0.8rem; }
+        .info-row > * { flex: 1; }
+
+        @media (max-width: 500px) {
+            .scoreboard { flex-wrap: wrap; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🐪 Jaipur</h1>
+
+    <div class="scoreboard">
+        <div class="score-item">
+            <div class="label">You</div>
+            <div class="value gold">{{ player_score }}</div>
+        </div>
+        <div class="score-item">
+            <div class="label">Round</div>
+            <div class="value">{{ round }} / 3</div>
+        </div>
+        <div class="score-item">
+            <div class="label">Wins</div>
+            <div class="value">{{ wins[0] }} – {{ wins[1] }}</div>
+        </div>
+        <div class="score-item">
+            <div class="label">AI</div>
+            <div class="value">{{ ai_score }}</div>
+        </div>
+        <div class="score-item">
+            <div class="label">Deck</div>
+            <div class="value">{{ deck_remaining }}</div>
+        </div>
+    </div>
+
+    {% if game_over %}
+    <div class="game-over-banner {{ 'win' if match_result == 'win' else 'lose' }}">
+        {% if match_result == 'win' %}
+            🎉 You win the match!
+        {% else %}
+            😤 AI wins the match!
+        {% endif %}
+    </div>
+    <form method="post" action="/new-game">
+        <button class="new-game-btn" type="submit">New Game</button>
+    </form>
+    {% endif %}
+
+    <!-- Market -->
+    <div class="zone">
+        <div class="zone-title">Market</div>
+        <div class="cards">
+            {% for c in market %}
+            <div class="card">{{ c.emoji }}<br><span class="count">{{ c.name }}</span></div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="info-row">
+        <!-- Your hand -->
+        <div class="zone">
+            <div class="zone-title">Your hand (🐪 {{ player_camels }})</div>
+            <div class="cards">
+                {% for c in hand %}
+                <div class="card">{{ c.emoji }} ×{{ c.count }}</div>
+                {% endfor %}
+                {% if not hand %}
+                <span style="color:#555">Empty</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- AI info -->
+        <div class="zone">
+            <div class="zone-title">AI</div>
+            <div class="cards">
+                <div class="card">🃏 ×{{ ai_hand_size }}</div>
+                <div class="card">🐪 ×{{ ai_camels }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tokens -->
+    <div class="zone">
+        <div class="zone-title">Token piles</div>
+        <div class="tokens-row">
+            {% for t in tokens %}
+            <div class="token-pile">
+                {{ t.emoji }} <span class="top">{{ t.top }}</span>
+                <span class="rem">({{ t.remaining }})</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    {% if actions and not game_over %}
+    <div class="zone">
+        <div class="zone-title">Your move</div>
+        <div class="actions">
+            {% for idx, label in actions %}
+            <form method="post" action="/action" style="display:inline">
+                <input type="hidden" name="action_idx" value="{{ idx }}">
+                <button type="submit" class="action-btn
+                    {% if 'Sell' in label %}sell{% elif 'Exchange' in label %}exchange{% endif %}
+                ">{{ label }}</button>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+    {% elif round_over and not game_over %}
+    <div class="zone" style="text-align:center; color: #e6b422;">
+        Round over! Starting next round...
+    </div>
+    {% endif %}
+
+    <!-- Log -->
+    <div class="zone">
+        <div class="zone-title">Log</div>
+        <div class="log">
+            {% for msg in log | reverse %}
+            <p class="{% if msg.startswith('You:') %}you{% elif msg.startswith('AI:') %}ai{% endif %}">{{ msg }}</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if not game_over %}
+    <form method="post" action="/new-game" style="text-align:center; margin-top:0.5rem;">
+        <button type="submit" style="background:none; border:1px solid #444; color:#666; padding:0.4rem 1rem; border-radius:6px; cursor:pointer; font-size:0.8rem;">Restart</button>
+    </form>
+    {% endif %}
+</div>
+</body>
+</html>
