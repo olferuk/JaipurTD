@@ -1,6 +1,6 @@
 """Play 1000 random games and print statistics."""
 import random
-from jaipur.game import play_match
+from jaipur.game_fast import play_match
 from jaipur.agents import RandomAgent, GreedyAgent
 
 
