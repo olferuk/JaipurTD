@@ -17,10 +17,12 @@ class NeuralAgent:
         network: ValueNetwork,
         epsilon: float = 0.1,
         rng: random.Random | None = None,
+        device: torch.device | None = None,
     ):
         self.network = network
         self.epsilon = epsilon
         self.rng = rng or random.Random()
+        self.device = device or torch.device("cpu")
 
     @torch.no_grad()
     def choose(self, state: GameState, actions: list[tuple]) -> tuple:
@@ -35,7 +37,7 @@ class NeuralAgent:
             next_state = state.apply_action(action)
             feats.append(encode_state(next_state, player))
 
-        batch = torch.from_numpy(np.stack(feats))
+        batch = torch.from_numpy(np.stack(feats)).to(self.device)
         values = self.network(batch)
         best_idx = values.argmax().item()
         return actions[best_idx]
