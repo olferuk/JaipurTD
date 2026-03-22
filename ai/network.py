@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 
-from jaipur.encoding import FEATURE_SIZE
+from jaipur.encoding import FEATURE_SIZE  # 32
 
 
 class ValueNetwork(nn.Module):

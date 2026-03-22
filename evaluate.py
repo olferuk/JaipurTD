@@ -4,7 +4,7 @@ from pathlib import Path
 
 import torch
 
-from jaipur.game import play_match
+from jaipur.game_fast import play_match
 from jaipur.agents import RandomAgent, GreedyAgent
 from ai.network import ValueNetwork
 from ai.agents import NeuralAgent

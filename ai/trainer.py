@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 
 from jaipur.encoding import encode_state
-from jaipur.game import GameState, play_round
+from jaipur.game_fast import GameState, play_round
 from ai.network import ValueNetwork
 from ai.agents import NeuralAgent
 
