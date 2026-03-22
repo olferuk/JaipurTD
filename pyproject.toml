@@ -1,0 +1,19 @@
+[project]
+name = "jaipur-ai"
+version = "0.1.0"
+description = "TD-learning AI for the Jaipur board game"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.4.3",
+    "pytest>=9.0.2",
+    "torch>=2.10.0",
+    "tqdm>=4.66.0",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
