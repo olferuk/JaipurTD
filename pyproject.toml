@@ -10,6 +10,10 @@ dependencies = [
     "tqdm>=4.66.0",
 ]
 
+[build-system]
+requires = ["setuptools>=75.0", "cython>=3.0"]
+build-backend = "setuptools.build_meta"
+
 [[tool.uv.index]]
 name = "pytorch-cu126"
 url = "https://download.pytorch.org/whl/cu126"
