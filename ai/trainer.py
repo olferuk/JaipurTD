@@ -28,7 +28,7 @@ def train_self_play(
     epsilon_end: float = 0.05,
     hidden1: int = 128,
     hidden2: int = 64,
-    batch_size: int = 64,
+    batch_size: int = 512,
     greedy_mix: float = 0.3,  # fraction of games vs Greedy
     save_path: str = "models/value_net.pt",
     checkpoint_every: int = 10_000,
@@ -117,30 +117,30 @@ def train_self_play(
                     state_buf.append(prev_feat[p])
                     target_buf.append(final_value)
 
-        # Batch update when buffer is full
-        if len(state_buf) >= batch_size:
+        # Batch update — drain buffer in chunks
+        last_loss = None
+        while len(state_buf) >= batch_size:
             states_t = torch.from_numpy(np.stack(state_buf[:batch_size])).to(device)
             targets_t = torch.tensor(target_buf[:batch_size], device=device)
 
             values = network(states_t)
-            loss = F.mse_loss(values, targets_t)
+            last_loss = F.mse_loss(values, targets_t)
 
             optimizer.zero_grad()
-            loss.backward()
+            last_loss.backward()
             optimizer.step()
             scheduler.step()
 
-            # Keep leftovers
             state_buf = state_buf[batch_size:]
             target_buf = target_buf[batch_size:]
 
-            if episode % 100 == 0:
-                lr_now = optimizer.param_groups[0]["lr"]
-                pbar.set_postfix(
-                    loss=f"{loss.item():.4f}",
-                    ε=f"{epsilon:.3f}",
-                    lr=f"{lr_now:.1e}",
-                )
+        if episode % 100 == 0 and last_loss is not None:
+            lr_now = optimizer.param_groups[0]["lr"]
+            pbar.set_postfix(
+                loss=f"{last_loss.item():.4f}",
+                ε=f"{epsilon:.3f}",
+                lr=f"{lr_now:.1e}",
+            )
 
         # Checkpoint
         if episode % checkpoint_every == 0:
