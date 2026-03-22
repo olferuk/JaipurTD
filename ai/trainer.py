@@ -36,6 +36,7 @@ def train_self_play(
     hidden2: int = 64,
     save_path: str = "models/value_net.pt",
     print_every: int = 1000,
+    checkpoint_every: int = 10_000,
     seed: int = 42,
 ) -> ValueNetwork:
     """Train a value network via TD(0) self-play.
@@ -94,7 +95,7 @@ def train_self_play(
         if winner is not None:
             stats["wins"][winner] += 1
 
-        # Print progress
+        # Print progress + periodic checkpoint
         if episode % print_every == 0:
             recent_errors = stats["td_errors"][-print_every:]
             avg_err = sum(recent_errors) / len(recent_errors) if recent_errors else 0
@@ -108,7 +109,20 @@ def train_self_play(
                 f"P0 win={p0:.1f}%"
             )
 
-    # Save model
+        if episode % checkpoint_every == 0:
+            cp_path = Path(save_path).parent / f"checkpoint_{episode}.pt"
+            cp_path.parent.mkdir(parents=True, exist_ok=True)
+            torch.save({
+                "model_state_dict": network.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "hidden1": hidden1,
+                "hidden2": hidden2,
+                "episodes": episode,
+                "epsilon": epsilon,
+            }, cp_path)
+            print(f"  💾 Checkpoint saved: {cp_path}")
+
+    # Save final model
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
     torch.save({
         "model_state_dict": network.state_dict(),
