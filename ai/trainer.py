@@ -4,6 +4,7 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
 
 from jaipur.encoding import encode_state
 from jaipur.game_fast import GameState, play_round
@@ -35,7 +36,6 @@ def train_self_play(
     hidden1: int = 128,
     hidden2: int = 64,
     save_path: str = "models/value_net.pt",
-    print_every: int = 1000,
     checkpoint_every: int = 10_000,
     seed: int = 42,
 ) -> ValueNetwork:
@@ -50,9 +50,11 @@ def train_self_play(
     network = ValueNetwork(hidden1, hidden2)
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
 
-    stats = {"wins": [0, 0], "td_errors": []}
+    wins = [0, 0]
+    recent_errors: list[float] = []
 
-    for episode in range(1, n_episodes + 1):
+    pbar = tqdm(range(1, n_episodes + 1), desc="Training", unit="ep")
+    for episode in pbar:
         # Decay epsilon linearly
         progress = episode / n_episodes
         epsilon = epsilon_start + (epsilon_end - epsilon_start) * progress
@@ -77,7 +79,7 @@ def train_self_play(
                 with torch.no_grad():
                     current_value = network(feat.unsqueeze(0)).item()
                 td_err = td_update(network, optimizer, prev_feat[player], current_value)
-                stats["td_errors"].append(td_err)
+                recent_errors.append(td_err)
 
             prev_feat[player] = feat
 
@@ -93,22 +95,20 @@ def train_self_play(
                 td_update(network, optimizer, prev_feat[p], final_value)
 
         if winner is not None:
-            stats["wins"][winner] += 1
+            wins[winner] += 1
 
-        # Print progress + periodic checkpoint
-        if episode % print_every == 0:
-            recent_errors = stats["td_errors"][-print_every:]
-            avg_err = sum(recent_errors) / len(recent_errors) if recent_errors else 0
-            w0, w1 = stats["wins"]
-            total = w0 + w1
-            p0 = w0 / total * 100 if total else 50
-            print(
-                f"Episode {episode:>6}/{n_episodes} | "
-                f"ε={epsilon:.3f} | "
-                f"avg TD error={avg_err:.4f} | "
-                f"P0 win={p0:.1f}%"
+        # Update progress bar
+        if episode % 100 == 0:
+            avg_err = sum(recent_errors[-500:]) / max(len(recent_errors[-500:]), 1)
+            total_w = wins[0] + wins[1]
+            p0 = wins[0] / total_w * 100 if total_w else 50
+            pbar.set_postfix(
+                ε=f"{epsilon:.3f}",
+                td_err=f"{avg_err:.4f}",
+                p0_win=f"{p0:.1f}%",
             )
 
+        # Periodic checkpoint
         if episode % checkpoint_every == 0:
             cp_path = Path(save_path).parent / f"checkpoint_{episode}.pt"
             cp_path.parent.mkdir(parents=True, exist_ok=True)
@@ -120,7 +120,9 @@ def train_self_play(
                 "episodes": episode,
                 "epsilon": epsilon,
             }, cp_path)
-            print(f"  💾 Checkpoint saved: {cp_path}")
+            tqdm.write(f"  💾 Checkpoint saved: {cp_path}")
+
+    pbar.close()
 
     # Save final model
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
