@@ -1,8 +1,8 @@
 """Card types, tokens, and deck definition for Jaipur."""
-from enum import Enum
+from enum import StrEnum
 
 
-class GoodType(Enum):
+class GoodType(StrEnum):
     DIAMOND = "diamond"
     GOLD = "gold"
     SILVER = "silver"
