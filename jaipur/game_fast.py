@@ -7,34 +7,48 @@ subset that covers the strategically important moves.
 If the Cython extension is available, all public names are re-exported from it.
 Otherwise, falls back to the pure-Python implementation below.
 """
+
 from __future__ import annotations
 
 # ── Try Cython engine first ──────────────────────────────────────
 try:
     from ._engine import (
-        GameState,
-        PlayerState,
-        play_round,
-        play_match,
-        ACT_TAKE_ONE_PY as ACT_TAKE_ONE,
-        ACT_TAKE_CAMELS_PY as ACT_TAKE_CAMELS,
-        ACT_SELL_PY as ACT_SELL,
-        ACT_EXCHANGE_PY as ACT_EXCHANGE,
         _N_GOODS_PY as _N_GOODS,
     )
+    from ._engine import (
+        ACT_EXCHANGE_PY as ACT_EXCHANGE,
+    )
+    from ._engine import (
+        ACT_SELL_PY as ACT_SELL,
+    )
+    from ._engine import (
+        ACT_TAKE_CAMELS_PY as ACT_TAKE_CAMELS,
+    )
+    from ._engine import (
+        ACT_TAKE_ONE_PY as ACT_TAKE_ONE,
+    )
+    from ._engine import (
+        GameState,
+        PlayerState,
+        play_match,
+        play_round,
+    )
+
     _CYTHON_ENGINE = True
 except ImportError:
     _CYTHON_ENGINE = False
 
     import random
-    from collections import Counter
     from dataclasses import dataclass, field
-    from typing import Union
 
     from .cards import (
-        BONUS_TOKENS_3, BONUS_TOKENS_4, BONUS_TOKENS_5,
-        CAMEL_BONUS, GOODS, PRECIOUS_GOODS, TOKENS,
-        GoodType, build_deck,
+        BONUS_TOKENS_3,
+        BONUS_TOKENS_4,
+        BONUS_TOKENS_5,
+        CAMEL_BONUS,
+        GOODS,
+        TOKENS,
+        GoodType,
     )
 
     # ---------- Actions (use ints for speed) ----------
@@ -100,8 +114,10 @@ except ImportError:
             deck: list[int] = []
             for g in GOODS:
                 from .cards import CARD_COUNTS
+
                 deck.extend([_G2I[g]] * CARD_COUNTS[g])
             from .cards import CARD_COUNTS
+
             deck.extend([6] * CARD_COUNTS[GoodType.CAMEL])
             rng.shuffle(deck)
 
@@ -204,7 +220,6 @@ except ImportError:
                     take = (gi, gj) if ti != tj else (gi, gi)
 
                     take_count = 2
-                    new_hand_max = hs + take_count
                     min_from_hand = max(0, hs + take_count - 7)
 
                     if p.camels >= 2 and min_from_hand == 0:
