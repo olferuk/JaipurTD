@@ -5,8 +5,6 @@ determinized MCTS: at the root we sample possible hidden states, run MCTS
 on each, and aggregate action visit counts to pick the best move.
 """
 
-from __future__ import annotations
-
 import math
 import random
 
@@ -75,7 +73,7 @@ class _MCTSNode:
     )
 
     def __init__(
-        self, state: GameState, action: tuple | None = None, parent: _MCTSNode | None = None
+        self, state: GameState, action: tuple | None = None, parent: "_MCTSNode" | None = None
     ):
         self.state = state
         self.action = action  # action that led here
@@ -97,7 +95,7 @@ class _MCTSNode:
         explore = exploration * math.sqrt(math.log(parent_visits) / self.visits)
         return exploit + explore
 
-    def best_child(self, exploration: float) -> _MCTSNode:
+    def best_child(self, exploration: float) -> "_MCTSNode":
         pv = self.visits
         return max(self.children, key=lambda c: c.ucb1(exploration, pv))
 
