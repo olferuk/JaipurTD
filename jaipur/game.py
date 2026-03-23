@@ -1,7 +1,5 @@
 """Jaipur game state and logic."""
 
-from __future__ import annotations
-
 import random
 from collections import Counter
 from dataclasses import dataclass, field
@@ -71,7 +69,7 @@ class PlayerState:
     def hand_size(self) -> int:
         return sum(self.hand.values())
 
-    def copy(self) -> PlayerState:
+    def copy(self) -> "PlayerState":
         p = PlayerState()
         p.hand = Counter(self.hand)
         p.camels = self.camels
@@ -97,7 +95,7 @@ class GameState:
     round_over: bool = False
 
     @staticmethod
-    def new_round(rng: random.Random | None = None) -> GameState:
+    def new_round(rng: random.Random | None = None) -> "GameState":
         """Set up a fresh round."""
         if rng is None:
             rng = random.Random()
@@ -142,12 +140,12 @@ class GameState:
         return gs
 
     @property
-    def cp(self) -> PlayerState:
+    def cp(self) -> "PlayerState":
         """Current player state."""
         return self.players[self.current_player]
 
     @property
-    def op(self) -> PlayerState:
+    def op(self) -> "PlayerState":
         """Opponent player state."""
         return self.players[1 - self.current_player]
 
@@ -325,7 +323,7 @@ class GameState:
 
     # ---------- Apply action ----------
 
-    def apply_action(self, action: Action) -> GameState:
+    def apply_action(self, action: Action) -> "GameState":
         """Apply action and return new state (does NOT mutate self)."""
         gs = self.copy()
         p = gs.cp
@@ -414,7 +412,7 @@ class GameState:
         # For simplicity, return None (tie → no one wins the round)
         return None
 
-    def copy(self) -> GameState:
+    def copy(self) -> "GameState":
         gs = GameState()
         gs.market = list(self.market)
         gs.deck = list(self.deck)

@@ -1,7 +1,5 @@
 """AI agents for Jaipur (fast engine)."""
 
-from __future__ import annotations
-
 import random
 from typing import Protocol
 
