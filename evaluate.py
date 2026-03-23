@@ -6,10 +6,10 @@ from pathlib import Path
 import torch
 
 from ai.agents import NeuralAgent
+from ai.mcts import MCTSAgent
 from ai.network import ValueNetwork
 from jaipur.agents import GreedyAgent, RandomAgent
 from jaipur.game_fast import play_match
-from ai.mcts import MCTSAgent
 
 
 def load_network(path: str = "models/value_net.pt") -> ValueNetwork:
