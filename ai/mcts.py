@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Optional
 
 from jaipur.game_fast import _N_GOODS, GameState
 
@@ -76,7 +75,7 @@ class _MCTSNode:
     )
 
     def __init__(
-        self, state: GameState, action: Optional[tuple] = None, parent: Optional[_MCTSNode] = None
+        self, state: GameState, action: tuple | None = None, parent: _MCTSNode | None = None
     ):
         self.state = state
         self.action = action  # action that led here
@@ -84,7 +83,7 @@ class _MCTSNode:
         self.children: list[_MCTSNode] = []
         self.visits: int = 0
         self.total_value: float = 0.0
-        self.untried_actions: Optional[list[tuple]] = None
+        self.untried_actions: list[tuple | None] = None
 
     def is_fully_expanded(self) -> bool:
         if self.untried_actions is None:
