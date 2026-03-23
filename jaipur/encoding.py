@@ -30,7 +30,7 @@ def encode_state(gs: GameState, player: int) -> np.ndarray:
     Uses the fast C-level encoder when the Cython engine is active.
     """
     # Fast path: Cython GameState has encode_for() that avoids property overhead
-    if hasattr(gs, 'encode_for'):
+    if hasattr(gs, "encode_for"):
         return gs.encode_for(player)
 
     feat = np.zeros(FEATURE_SIZE, dtype=np.float32)
