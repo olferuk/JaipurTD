@@ -9,6 +9,7 @@ from ai.agents import NeuralAgent
 from ai.network import ValueNetwork
 from jaipur.agents import GreedyAgent, RandomAgent
 from jaipur.game_fast import play_match
+from ai.mcts import MCTSAgent
 
 
 def load_network(path: str = "models/value_net.pt") -> ValueNetwork:
@@ -117,6 +118,7 @@ if __name__ == "__main__":
     rng = random.Random(99)
     agents["Random"] = RandomAgent(rng)
     agents["Greedy"] = GreedyAgent(rng)
+    agents["MCTS(500)"] = MCTSAgent(num_simulations=500, rng=rng)
 
     # Load neural agents
     for pt_file in sorted(models_dir.glob("*.pt")):
