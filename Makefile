@@ -1,4 +1,4 @@
-.PHONY: install train test style evaluate help
+.PHONY: install train test style lint evaluate help ci
 
 PYTHON ?= python3
 
@@ -21,5 +21,10 @@ test: ## Run tests
 style: ## Format code with black
 	$(PYTHON) -m black ai/ jaipur/ tests/ *.py
 
+lint: ## Lint with ruff (catches Optional, old List/Dict, etc.)
+	$(PYTHON) -m ruff check ai/ jaipur/ tests/ *.py
+
 evaluate: ## Evaluate neural agent vs baselines
 	$(PYTHON) -m evaluate
+
+ci: lint test ## Run lint + tests (CI pipeline)
