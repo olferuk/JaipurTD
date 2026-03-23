@@ -1,4 +1,5 @@
 """Value network for Jaipur TD-learning."""
+
 import torch
 import torch.nn as nn
 
@@ -7,7 +8,7 @@ from jaipur.encoding import FEATURE_SIZE  # 32
 
 class ValueNetwork(nn.Module):
     """MLP that estimates P(win) from a game state encoding.
-    
+
     Input: feature vector of size FEATURE_SIZE
     Output: scalar in [0, 1] (win probability)
     """

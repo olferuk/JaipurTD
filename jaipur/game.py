@@ -1,29 +1,39 @@
 """Jaipur game state and logic."""
+
 from __future__ import annotations
 
 import random
 from collections import Counter
-from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Union
 
 from .cards import (
-    BONUS_TOKENS_3, BONUS_TOKENS_4, BONUS_TOKENS_5,
-    CAMEL_BONUS, GOODS, PRECIOUS_GOODS, TOKENS,
-    GoodType, build_deck,
+    BONUS_TOKENS_3,
+    BONUS_TOKENS_4,
+    BONUS_TOKENS_5,
+    CAMEL_BONUS,
+    GOODS,
+    PRECIOUS_GOODS,
+    TOKENS,
+    GoodType,
+    build_deck,
 )
 
 # ---------- Actions ----------
 
+
 @dataclass(frozen=True)
 class TakeOne:
     """Take one good card from the market."""
+
     good: GoodType
+
 
 @dataclass(frozen=True)
 class TakeCamels:
     """Take all camels from the market."""
+
     pass
+
 
 @dataclass(frozen=True)
 class TakeMultiple:
@@ -32,19 +42,24 @@ class TakeMultiple:
     give_camels: number of camels from herd to return to market
     take_goods: goods to take from market
     """
+
     take_goods: tuple[GoodType, ...]
     give_goods: tuple[GoodType, ...]
     give_camels: int = 0
 
+
 @dataclass(frozen=True)
 class Sell:
     """Sell cards of one good type."""
+
     good: GoodType
     count: int
 
-Action = Union[TakeOne, TakeCamels, TakeMultiple, Sell]
+
+Action = TakeOne | TakeCamels | TakeMultiple | Sell
 
 # ---------- Player State ----------
+
 
 @dataclass
 class PlayerState:
@@ -63,7 +78,9 @@ class PlayerState:
         p.score = self.score
         return p
 
+
 # ---------- Game State ----------
+
 
 @dataclass
 class GameState:
@@ -191,7 +208,7 @@ class GameState:
 
     def _exchange_actions(self) -> list[Action]:
         """Generate all valid TakeMultiple actions.
-        
+
         Rules: take N goods from market (non-camel), give back N cards
         (from hand goods + camels). Must take at least 2.
         Can't take and give back the same type (net zero).
@@ -220,19 +237,17 @@ class GameState:
             # So: hand_size + take_count - give_from_hand <= 7
             # give_from_hand >= hand_size + take_count - 7 (but >= 0)
             min_from_hand = max(0, p.hand_size + take_count - 7)
-            max_from_hand = min(p.hand_size, take_count)
-            max_camels = min(p.camels, take_count)
 
             # Generate give combinations
-            give_combos = self._give_combinations(
-                p.hand, p.camels, take_count, take, min_from_hand
-            )
+            give_combos = self._give_combinations(p.hand, p.camels, take_count, take, min_from_hand)
             for give_goods, give_camels in give_combos:
-                actions.append(TakeMultiple(
-                    take_goods=tuple(sorted(take.elements(), key=lambda g: g.value)),
-                    give_goods=tuple(sorted(give_goods.elements(), key=lambda g: g.value)),
-                    give_camels=give_camels,
-                ))
+                actions.append(
+                    TakeMultiple(
+                        take_goods=tuple(sorted(take.elements(), key=lambda g: g.value)),
+                        give_goods=tuple(sorted(give_goods.elements(), key=lambda g: g.value)),
+                        give_camels=give_camels,
+                    )
+                )
 
         return actions
 
@@ -245,7 +260,7 @@ class GameState:
         min_from_hand: int,
     ) -> list[tuple[Counter, int]]:
         """Generate valid (give_goods, give_camels) pairs.
-        
+
         Can't give back a good type you're also taking (no net-zero swaps).
         """
         # Available hand goods excluding types being taken

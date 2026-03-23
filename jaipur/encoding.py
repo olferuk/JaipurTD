@@ -1,9 +1,8 @@
 """Encode Jaipur game state as a feature vector for the neural network."""
+
 import numpy as np
 
-from .cards import GOODS
-from .game_fast import GameState, _N_GOODS
-
+from .game_fast import _N_GOODS, GameState
 
 # Feature vector layout:
 # [0:6]   current player hand (one per good type)
