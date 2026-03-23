@@ -4,11 +4,14 @@ Jaipur has hidden information (opponent's hand, deck order), so we use
 determinized MCTS: at the root we sample possible hidden states, run MCTS
 on each, and aggregate action visit counts to pick the best move.
 """
+from __future__ import annotations
 
 import math
 import random
+from typing import Optional
 
-from jaipur.game_fast import _N_GOODS, GameState
+from jaipur.game_fast import GameState, PlayerState, _N_GOODS
+from jaipur.cards import CARD_COUNTS, GoodType, GOODS
 
 
 def _determinize(state: GameState, player: int, rng: random.Random) -> GameState:
@@ -62,26 +65,18 @@ def _determinize(state: GameState, player: int, rng: random.Random) -> GameState
 class _MCTSNode:
     """A node in the MCTS search tree."""
 
-    __slots__ = (
-        "state",
-        "action",
-        "parent",
-        "children",
-        "visits",
-        "total_value",
-        "untried_actions",
-    )
+    __slots__ = ("state", "action", "parent", "children",
+                 "visits", "total_value", "untried_actions")
 
-    def __init__(
-        self, state: GameState, action: tuple | None = None, parent: "_MCTSNode" | None = None
-    ):
+    def __init__(self, state: GameState, action: Optional[tuple] = None,
+                 parent: Optional[_MCTSNode] = None):
         self.state = state
         self.action = action  # action that led here
         self.parent = parent
         self.children: list[_MCTSNode] = []
         self.visits: int = 0
         self.total_value: float = 0.0
-        self.untried_actions: list[tuple | None] = None
+        self.untried_actions: Optional[list[tuple]] = None
 
     def is_fully_expanded(self) -> bool:
         if self.untried_actions is None:
@@ -95,7 +90,7 @@ class _MCTSNode:
         explore = exploration * math.sqrt(math.log(parent_visits) / self.visits)
         return exploit + explore
 
-    def best_child(self, exploration: float) -> "_MCTSNode":
+    def best_child(self, exploration: float) -> _MCTSNode:
         pv = self.visits
         return max(self.children, key=lambda c: c.ucb1(exploration, pv))
 
@@ -143,9 +138,8 @@ def _rollout(state: GameState, player: int, rng: random.Random) -> float:
     return 1.0 if winner == player else 0.0
 
 
-def _mcts_search(
-    root_state: GameState, player: int, num_simulations: int, exploration: float, rng: random.Random
-) -> dict[tuple, int]:
+def _mcts_search(root_state: GameState, player: int, num_simulations: int,
+                 exploration: float, rng: random.Random) -> dict[tuple, int]:
     """Run MCTS from a single determinized root state.
 
     Returns a dict mapping action -> visit count.
@@ -242,11 +236,8 @@ class MCTSAgent:
         for _ in range(self.num_determinizations):
             det_state = _determinize(state, player, self.rng)
             visits = _mcts_search(
-                det_state,
-                player,
-                sims_per_det,
-                self.exploration_constant,
-                self.rng,
+                det_state, player, sims_per_det,
+                self.exploration_constant, self.rng,
             )
             for action, count in visits.items():
                 if action in total_visits:
