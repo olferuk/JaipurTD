@@ -1,4 +1,4 @@
-.PHONY: install train test style lint evaluate help ci
+.PHONY: install train test lint fmt evaluate help ci
 
 PYTHON ?= python3
 
@@ -18,11 +18,12 @@ train: ## Train the neural agent (self-play TD learning)
 test: ## Run tests
 	$(PYTHON) -m pytest tests/ -v
 
-style: ## Format code with black
-	$(PYTHON) -m black ai/ jaipur/ tests/ *.py
-
-lint: ## Lint with ruff (catches Optional, old List/Dict, etc.)
+lint: ## Lint with ruff
 	$(PYTHON) -m ruff check ai/ jaipur/ tests/ *.py
+
+fmt: ## Format code with ruff
+	$(PYTHON) -m ruff format ai/ jaipur/ tests/ *.py
+	$(PYTHON) -m ruff check --fix ai/ jaipur/ tests/ *.py
 
 evaluate: ## Evaluate neural agent vs baselines
 	$(PYTHON) -m evaluate
