@@ -1,14 +1,14 @@
 """Evaluate neural agent vs baselines + Elo tournament."""
+
 import random
-import math
 from pathlib import Path
 
 import torch
 
-from jaipur.game_fast import play_match
-from jaipur.agents import RandomAgent, GreedyAgent
-from ai.network import ValueNetwork
 from ai.agents import NeuralAgent
+from ai.network import ValueNetwork
+from jaipur.agents import GreedyAgent, RandomAgent
+from jaipur.game_fast import play_match
 
 
 def load_network(path: str = "models/value_net.pt") -> ValueNetwork:
@@ -39,12 +39,13 @@ def evaluate(net: ValueNetwork, n_games: int = 500, seed: int = 99):
 
         neural_wins = wins_as_p0[0] + wins_as_p1[1]
         total = n_games * 2
-        print(f"Neural vs {name:>6}: {neural_wins}/{total} ({neural_wins/total*100:.1f}%)")
+        print(f"Neural vs {name:>6}: {neural_wins}/{total} ({neural_wins / total * 100:.1f}%)")
         print(f"  As P0: {wins_as_p0[0]}/{n_games} | As P1: {wins_as_p1[1]}/{n_games}")
         print()
 
 
 # ---------- Elo Tournament ----------
+
 
 def expected_score(elo_a: float, elo_b: float) -> float:
     return 1.0 / (1.0 + 10 ** ((elo_b - elo_a) / 400))
@@ -62,7 +63,7 @@ def elo_tournament(agents: dict[str, object], n_rounds: int = 200, seed: int = 4
     print("=" * 60)
 
     for i, name_a in enumerate(names):
-        for name_b in names[i + 1:]:
+        for name_b in names[i + 1 :]:
             for _ in range(n_rounds):
                 # Alternate who goes first
                 if rng.random() < 0.5:

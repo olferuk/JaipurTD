@@ -4,17 +4,20 @@ Key optimization: exchange actions are simplified to avoid combinatorial explosi
 Instead of enumerating all possible take/give combinations, we generate a practical
 subset that covers the strategically important moves.
 """
+
 from __future__ import annotations
 
 import random
-from collections import Counter
 from dataclasses import dataclass, field
-from typing import Union
 
 from .cards import (
-    BONUS_TOKENS_3, BONUS_TOKENS_4, BONUS_TOKENS_5,
-    CAMEL_BONUS, GOODS, PRECIOUS_GOODS, TOKENS,
-    GoodType, build_deck,
+    BONUS_TOKENS_3,
+    BONUS_TOKENS_4,
+    BONUS_TOKENS_5,
+    CAMEL_BONUS,
+    GOODS,
+    TOKENS,
+    GoodType,
 )
 
 # ---------- Actions (use ints for speed) ----------
@@ -92,8 +95,10 @@ class GameState:
         deck: list[int] = []
         for g in GOODS:
             from .cards import CARD_COUNTS
+
             deck.extend([_G2I[g]] * CARD_COUNTS[g])
         from .cards import CARD_COUNTS
+
         deck.extend([6] * CARD_COUNTS[GoodType.CAMEL])
         rng.shuffle(deck)
 
@@ -182,7 +187,7 @@ class GameState:
 
     def _add_exchange_actions(self, actions: list[tuple]) -> None:
         """Generate practical exchange actions without combinatorial explosion.
-        
+
         Strategy: generate exchanges of size 2 and 3 covering the most useful moves.
         """
         p = self.cp
@@ -212,7 +217,6 @@ class GameState:
 
                 # Hand limit check
                 take_count = 2
-                new_hand_max = hs + take_count  # worst case (give camels only)
                 min_from_hand = max(0, hs + take_count - 7)
 
                 # Generate give options: prefer camels, then cheapest goods

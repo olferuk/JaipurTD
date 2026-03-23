@@ -1,4 +1,5 @@
 """Card types, tokens, and deck definition for Jaipur."""
+
 from enum import StrEnum
 
 
