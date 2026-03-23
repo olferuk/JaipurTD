@@ -1,6 +1,6 @@
 """TD(0) self-play training loop for Jaipur — v2 with improvements."""
+
 import random
-import math
 from pathlib import Path
 
 import numpy as np
@@ -8,10 +8,10 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
+from ai.agents import NeuralAgent
+from ai.network import ValueNetwork
 from jaipur.encoding import encode_state
 from jaipur.game_fast import GameState, play_match
-from ai.network import ValueNetwork
-from ai.agents import NeuralAgent
 
 
 def get_device() -> torch.device:
@@ -51,7 +51,8 @@ def train_self_play(
     )
 
     # Greedy opponent for mixed training
-    from jaipur.agents import GreedyAgent, RandomAgent
+    from jaipur.agents import GreedyAgent
+
     greedy = GreedyAgent(rng)
 
     # Batch buffers for TD updates
@@ -146,13 +147,16 @@ def train_self_play(
         if episode % checkpoint_every == 0:
             cp_path = Path(save_path).parent / f"checkpoint_{episode}.pt"
             cp_path.parent.mkdir(parents=True, exist_ok=True)
-            torch.save({
-                "model_state_dict": network.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "hidden1": hidden1,
-                "hidden2": hidden2,
-                "episodes": episode,
-            }, cp_path)
+            torch.save(
+                {
+                    "model_state_dict": network.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "hidden1": hidden1,
+                    "hidden2": hidden2,
+                    "episodes": episode,
+                },
+                cp_path,
+            )
             tqdm.write(f"  💾 Checkpoint: {cp_path}")
 
         # Periodic eval vs Greedy (early stopping)
@@ -162,25 +166,31 @@ def train_self_play(
             if win_rate > best_vs_greedy:
                 best_vs_greedy = win_rate
                 best_path.parent.mkdir(parents=True, exist_ok=True)
-                torch.save({
-                    "model_state_dict": network.state_dict(),
-                    "hidden1": hidden1,
-                    "hidden2": hidden2,
-                    "episodes": episode,
-                    "win_rate_vs_greedy": win_rate,
-                }, best_path)
+                torch.save(
+                    {
+                        "model_state_dict": network.state_dict(),
+                        "hidden1": hidden1,
+                        "hidden2": hidden2,
+                        "episodes": episode,
+                        "win_rate_vs_greedy": win_rate,
+                    },
+                    best_path,
+                )
                 tqdm.write(f"  🏆 New best! Saved to {best_path}")
 
     pbar.close()
 
     # Save final
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-    torch.save({
-        "model_state_dict": network.state_dict(),
-        "hidden1": hidden1,
-        "hidden2": hidden2,
-        "episodes": n_episodes,
-    }, save_path)
+    torch.save(
+        {
+            "model_state_dict": network.state_dict(),
+            "hidden1": hidden1,
+            "hidden2": hidden2,
+            "episodes": n_episodes,
+        },
+        save_path,
+    )
     print(f"\nFinal model: {save_path}")
     print(f"Best model:  {best_path} ({best_vs_greedy:.1%} vs Greedy)")
 
@@ -188,7 +198,10 @@ def train_self_play(
 
 
 def _eval_vs_greedy(
-    network: ValueNetwork, n_games: int, rng: random.Random, device: torch.device,
+    network: ValueNetwork,
+    n_games: int,
+    rng: random.Random,
+    device: torch.device,
 ) -> float:
     """Quick eval: return win rate vs Greedy."""
     from jaipur.agents import GreedyAgent

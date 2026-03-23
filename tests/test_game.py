@@ -1,24 +1,24 @@
 """Tests for Jaipur game engine."""
+
 import random
 from collections import Counter
 
-import pytest
-
-from jaipur.cards import GoodType, GOODS
+from jaipur.agents import RandomAgent
+from jaipur.cards import GOODS, GoodType
 from jaipur.game import (
-    GameState, PlayerState, TakeOne, TakeCamels, TakeMultiple, Sell,
+    GameState,
+    Sell,
+    TakeCamels,
+    TakeOne,
     play_round,
 )
-from jaipur.agents import RandomAgent
 
 
 class TestSetup:
     def test_deck_size(self):
         gs = GameState.new_round(random.Random(42))
         # 55 total - 5 market - 5 per player = 30 in deck
-        total = len(gs.deck) + len(gs.market) + sum(
-            p.hand_size + p.camels for p in gs.players
-        )
+        total = len(gs.deck) + len(gs.market) + sum(p.hand_size + p.camels for p in gs.players)
         assert total == 55
 
     def test_market_size(self):
