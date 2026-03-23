@@ -1,12 +1,13 @@
 """Neural network agent for Jaipur."""
+
 import random
 
 import numpy as np
 import torch
 
+from ai.network import ValueNetwork
 from jaipur.encoding import encode_state
 from jaipur.game_fast import GameState
-from ai.network import ValueNetwork
 
 
 class NeuralAgent:

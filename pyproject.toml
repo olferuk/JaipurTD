@@ -9,3 +9,25 @@ dependencies = [
     "torch>=2.10.0",
     "tqdm>=4.66.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.9.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "I",      # isort
+    "UP006",  # deprecated collection types (List, Dict, Set, Tuple)
+    "UP007",  # Optional[X] -> X | None
+    "UP035",  # deprecated typing imports
+]
+
+[tool.ruff.format]
+quote-style = "double"

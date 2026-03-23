@@ -1,10 +1,11 @@
 """AI agents for Jaipur (fast engine)."""
+
 from __future__ import annotations
 
 import random
 from typing import Protocol
 
-from .game_fast import GameState, ACT_SELL, ACT_TAKE_ONE, _N_GOODS
+from .game_fast import ACT_SELL, ACT_TAKE_ONE, GameState
 
 
 class Agent(Protocol):
@@ -13,6 +14,7 @@ class Agent(Protocol):
 
 class RandomAgent:
     """Picks a random legal action."""
+
     def __init__(self, rng: random.Random | None = None):
         self.rng = rng or random.Random()
 
@@ -22,6 +24,7 @@ class RandomAgent:
 
 class GreedyAgent:
     """Simple heuristic: sell when profitable, take expensive goods."""
+
     # Priority: diamond > gold > silver > spice > cloth > leather
     GOOD_VALUE = [6, 5, 4, 3, 2, 1]
 
