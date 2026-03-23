@@ -5,8 +5,6 @@ Instead of enumerating all possible take/give combinations, we generate a practi
 subset that covers the strategically important moves.
 """
 
-from __future__ import annotations
-
 import random
 from dataclasses import dataclass, field
 
@@ -49,7 +47,7 @@ class PlayerState:
     def hand_size(self) -> int:
         return sum(self.hand)
 
-    def copy(self) -> PlayerState:
+    def copy(self) -> "PlayerState":
         p = PlayerState()
         p.hand = self.hand[:]
         p.camels = self.camels
@@ -74,7 +72,7 @@ class GameState:
     deck_size: int = 0
 
     @staticmethod
-    def new_round(rng: random.Random | None = None) -> GameState:
+    def new_round(rng: random.Random | None = None) -> "GameState":
         if rng is None:
             rng = random.Random()
 
@@ -128,11 +126,11 @@ class GameState:
         return gs
 
     @property
-    def cp(self) -> PlayerState:
+    def cp(self) -> "PlayerState":
         return self.players[self.current_player]
 
     @property
-    def op(self) -> PlayerState:
+    def op(self) -> "PlayerState":
         return self.players[1 - self.current_player]
 
     def _refill_market(self) -> None:
@@ -272,7 +270,7 @@ class GameState:
                     if hs_after <= 7:
                         actions.append((ACT_EXCHANGE, take, tuple(give_goods), give_camels))
 
-    def apply_action(self, action: tuple) -> GameState:
+    def apply_action(self, action: tuple) -> "GameState":
         gs = self.copy()
         p = gs.cp
 
@@ -353,7 +351,7 @@ class GameState:
             return 1
         return None
 
-    def copy(self) -> GameState:
+    def copy(self) -> "GameState":
         gs = GameState()
         gs.market = self.market[:]
         gs.deck = self.deck[:]
