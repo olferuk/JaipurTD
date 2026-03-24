@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jaipur Arena — AI Tournament</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fira+Code:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root {
+  --lavender:#6366f1; --lavender-l:#c7d2fe; --lavender-p:#eef2ff;
+  --mint:#4aba8a; --mint-l:#b5e6d0; --mint-p:#e8f5ef;
+  --peach:#d4915c; --peach-l:#eac9a8; --peach-p:#f7ede2;
+  --rose:#c2185b; --rose-l:#e8a0b4; --rose-p:#fce4ec;
+  --sky:#818cf8; --sky-l:#c7d2fe; --sky-p:#eef2ff;
+  --lemon:#d4a822; --lemon-l:#ebd47a; --lemon-p:#f9f0d0;
+  --ink:#1a1a2e; --ink2:#33334d; --ink3:#4a4a6a;
+  --tx:#2d2d3f; --tx2:#5c5c72; --tx3:#9898ab;
+  --bg:#fafaf9; --w:#fff;
+  --brd:#d4d4d8; --b:2px; --r:14px; --r2:20px; --r3:10px;
+  --sans:'Space Grotesk',system-ui,sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'Fira Code',monospace;
+  --sh:0 6px 24px rgba(99,102,241,0.14);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased}
+
+/* === BENTO GRID === */
+.bento{
+  max-width:1200px;margin:0 auto;padding:20px;
+  display:grid;grid-template-columns:repeat(12,1fr);gap:16px;
+}
+.cell{
+  background:var(--w);border:var(--b) solid var(--brd);border-radius:var(--r);
+  padding:24px;overflow:hidden;position:relative;transition:box-shadow .2s;
+}
+.cell:hover{box-shadow:var(--sh)}
+.c1{grid-column:span 1}.c2{grid-column:span 2}.c3{grid-column:span 3}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}
+.c7{grid-column:span 7}.c8{grid-column:span 8}.c9{grid-column:span 9}
+.c12{grid-column:span 12}
+.r2{grid-row:span 2}.r3{grid-row:span 3}
+
+/* cell label */
+.cl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.cl svg{width:13px;height:13px}
+
+/* === HERO === */
+.hero-cell{
+  background:var(--ink);border-color:var(--ink2);color:white;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.hero-cell h1{font-family:var(--serif);font-size:2.8rem;line-height:1.05;margin-bottom:8px}
+.hero-cell p{color:rgba(255,255,255,.6);font-size:.9rem}
+
+/* === BUTTONS === */
+.btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 14px;border-radius:var(--r3);
+  font-family:var(--sans);font-weight:600;font-size:.8rem;
+  border:var(--b) solid transparent;cursor:pointer;
+  transition:all .12s;background:none;line-height:1;
+}
+.btn:active{transform:scale(.96)}
+.btn svg{width:13px;height:13px}
+.btn-p{background:var(--ink3);color:white;border-color:var(--ink2)}
+.btn-p:hover{background:var(--ink2)}
+.btn-s{background:var(--lavender-l);color:var(--ink2);border-color:var(--lavender)}
+.btn-s:hover{background:var(--lavender-p)}
+.btn-m{background:var(--mint-l);color:#065f46;border-color:var(--mint)}
+.btn-m:hover{background:var(--mint-p)}
+.btn-pe{background:var(--peach-l);color:#9a3412;border-color:var(--peach)}
+.btn-r{background:var(--rose-l);color:#9f1239;border-color:var(--rose)}
+.btn-o{background:var(--w);color:var(--tx);border-color:var(--brd)}
+.btn-g{color:var(--tx2);border-color:transparent}
+.btn-pill{border-radius:99px}
+.btn-lg{padding:10px 20px;font-size:.9rem}
+.btn-lg svg{width:16px;height:16px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+
+/* === BADGE === */
+.badge{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:3px 10px;border-radius:99px;
+  font-size:.7rem;font-weight:600;border:2px solid;
+}
+.badge svg{width:11px;height:11px}
+.b-lav{background:var(--lavender-p);color:var(--ink2);border-color:var(--lavender)}
+.b-mint{background:var(--mint-p);color:#065f46;border-color:var(--mint)}
+.b-rose{background:var(--rose-p);color:#9f1239;border-color:var(--rose)}
+.b-lemon{background:var(--lemon-p);color:#854d0e;border-color:var(--lemon)}
+.b-sky{background:var(--sky-p);color:#0369a1;border-color:var(--sky)}
+.b-peach{background:var(--peach-p);color:#9a3412;border-color:var(--peach)}
+
+/* === TABLE === */
+.tbl{width:100%;border-collapse:collapse;font-size:.8rem}
+.tbl th{text-align:left;padding:8px 10px;font-size:.7rem;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;border-bottom:var(--b) solid var(--brd);background:var(--lavender-p)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--lavender-l);color:var(--tx2)}
+.tbl tr:hover td{background:var(--lavender-p)}
+.tbl .rank-cell{font-family:var(--serif);font-weight:700;font-size:1rem}
+
+/* === PROGRESS === */
+.prog{height:8px;background:var(--lavender-l);border-radius:99px;overflow:hidden;border:1.5px solid var(--lavender);margin:4px 0 8px}
+.prog-fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+
+/* === AVATAR === */
+.ava{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:white;font-weight:700;border:var(--b) solid rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+
+/* === INPUT === */
+.inp{
+  width:100%;padding:8px 12px;
+  border:var(--b) solid var(--brd);border-radius:var(--r3);
+  font-family:var(--sans);font-size:.85rem;
+  outline:none;background:var(--w);color:var(--tx);
+}
+.inp:focus{border-color:var(--lavender);box-shadow:0 0 0 3px var(--lavender-l)}
+.inp-label{font-weight:600;font-size:.8rem;margin-bottom:4px;display:block}
+
+/* === NAV === */
+.nav-bar{
+  max-width:1200px;margin:0 auto;padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.nav-logo{font-family:var(--serif);font-size:1.2rem;color:var(--ink);display:flex;align-items:center;gap:8px;font-weight:700}
+.nav-logo svg{width:20px;height:20px;color:var(--lavender)}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{
+  padding:6px 14px;border-radius:var(--r3);font-weight:600;font-size:.8rem;
+  color:var(--tx2);cursor:pointer;border:var(--b) solid transparent;
+  background:none;font-family:var(--sans);transition:all .15s;
+  display:flex;align-items:center;gap:5px;
+}
+.nav-tab svg{width:14px;height:14px}
+.nav-tab:hover{background:var(--lavender-p);color:var(--ink)}
+.nav-tab.active{background:var(--lavender-l);color:var(--ink2);border-color:var(--lavender)}
+
+/* === AGENT CARD === */
+.agent-card{
+  background:var(--w);border:var(--b) solid var(--brd);border-radius:var(--r);
+  padding:20px;text-align:center;cursor:pointer;transition:all .2s;
+}
+.agent-card:hover{box-shadow:var(--sh);transform:translateY(-2px)}
+.agent-card.selected{border-color:var(--lavender);box-shadow:0 0 0 3px var(--lavender-l)}
+.agent-ava{width:56px;height:56px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:1.1rem;border:3px solid rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.agent-name{font-weight:700;font-size:.95rem;color:var(--ink);margin-bottom:4px}
+.agent-desc{font-size:.72rem;color:var(--tx3);margin-bottom:8px}
+.agent-stat{font-family:var(--mono);font-size:.7rem;color:var(--tx2)}
+
+/* === MATCHUP CELL === */
+.matchup{
+  background:var(--w);border:var(--b) solid var(--brd);border-radius:var(--r3);
+  padding:14px;transition:all .2s;
+}
+.matchup:hover{box-shadow:var(--sh)}
+.matchup-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.matchup-agents{font-weight:600;font-size:.82rem;color:var(--ink);display:flex;align-items:center;gap:6px}
+.matchup-vs{color:var(--tx3);font-size:.7rem;font-weight:400}
+.matchup-score{display:flex;gap:8px;font-family:var(--mono);font-size:.85rem;font-weight:700;margin-bottom:6px}
+.matchup-score .w{color:#065f46}.matchup-score .l{color:#9f1239}
+.matchup-prog{height:6px;background:var(--brd);border-radius:99px;overflow:hidden;display:flex}
+.matchup-prog-a{background:var(--mint);height:100%;transition:width 0.6s cubic-bezier(.4,0,.2,1)}
+.matchup-prog-b{background:var(--rose);height:100%;transition:width 0.6s cubic-bezier(.4,0,.2,1)}
+
+/* === HEATMAP === */
+.heatmap{width:100%;border-collapse:collapse;font-size:.75rem}
+.heatmap th{padding:6px 8px;font-size:.65rem;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em}
+.heatmap td{padding:6px 8px;text-align:center;font-family:var(--mono);font-weight:600;border:1px solid var(--brd);border-radius:4px}
+.heatmap .row-label{text-align:left;font-weight:600;color:var(--ink);font-family:var(--sans)}
+
+/* === BAR CHART === */
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:8px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{border-radius:6px 6px 0 0;width:100%;min-height:4px;transition:height .8s cubic-bezier(.4,0,.2,1)}
+.bar-label{font-size:.6rem;font-weight:600;color:var(--tx3);white-space:nowrap}
+.bar-val{font-family:var(--mono);font-size:.65rem;font-weight:700;color:var(--tx2)}
+
+/* === STAT COUNTER === */
+.stat-big{font-family:var(--serif);font-size:2rem;font-weight:700;color:var(--ink);line-height:1}
+.stat-label{font-size:.7rem;color:var(--tx3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:4px}
+
+/* === CONFIG PANEL === */
+.config-overlay{
+  display:none;position:fixed;inset:0;background:rgba(26,26,46,.4);
+  z-index:100;justify-content:center;align-items:center;backdrop-filter:blur(4px);
+}
+.config-overlay.open{display:flex}
+.config-panel{
+  background:var(--w);border:var(--b) solid var(--brd);border-radius:var(--r2);
+  padding:28px;max-width:520px;width:90%;box-shadow:0 12px 48px rgba(99,102,241,.18);
+}
+.config-panel h3{font-family:var(--serif);font-size:1.4rem;color:var(--ink);margin-bottom:4px}
+.config-panel .sub{font-size:.8rem;color:var(--tx3);margin-bottom:20px}
+
+/* === AGENT CHECKBOX === */
+.agent-check{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;
+  border:var(--b) solid var(--brd);border-radius:var(--r3);
+  cursor:pointer;transition:all .15s;margin-bottom:6px;
+}
+.agent-check:hover{border-color:var(--lavender-l)}
+.agent-check.checked{border-color:var(--lavender);background:var(--lavender-p)}
+.agent-check input{display:none}
+.agent-check .mini-ava{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:.65rem;border:2px solid rgba(255,255,255,.8)}
+.agent-check .aname{font-weight:600;font-size:.85rem;color:var(--ink)}
+
+/* === SLIDER === */
+.range-wrap{display:flex;align-items:center;gap:12px;margin:8px 0 16px}
+.range-wrap input[type=range]{flex:1;accent-color:var(--lavender);height:6px}
+.range-val{font-family:var(--mono);font-size:.85rem;font-weight:700;color:var(--ink);min-width:36px;text-align:center}
+
+/* === PULSE DOT === */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--mint);display:inline-block;animation:pulse 1.5s ease-in-out infinite}
+
+/* === LOADING SPINNER === */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:18px;height:18px;border:3px solid var(--lavender-l);border-top-color:var(--lavender);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+
+/* === ANIMATED COUNTER === */
+@keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.count-anim{animation:countUp .5s ease-out}
+
+/* === VIEWS === */
+.view{display:none}
+.view.active{display:block}
+
+/* === DETAIL PANEL === */
+.detail-panel{
+  display:none;position:fixed;right:0;top:0;bottom:0;width:420px;
+  background:var(--w);border-left:var(--b) solid var(--brd);
+  box-shadow:-8px 0 32px rgba(99,102,241,.1);z-index:90;
+  overflow-y:auto;padding:24px;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.detail-panel.open{display:block}
+
+/* === MATCHUP GRID === */
+.matchup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+
+/* === HEAD2HEAD === */
+.h2h-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--lavender-l)}
+.h2h-row:last-child{border-bottom:none}
+.h2h-bar{flex:1;height:6px;background:var(--brd);border-radius:99px;overflow:hidden}
+.h2h-fill{height:100%;border-radius:99px;transition:width .8s}
+
+/* === MOTD (match of the day) === */
+.motd{
+  background:linear-gradient(135deg,var(--lemon-p),var(--peach-p));
+  border:var(--b) solid var(--lemon);border-radius:var(--r);padding:20px;
+}
+.motd h4{font-family:var(--serif);font-size:1.1rem;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.motd h4 svg{color:var(--lemon)}
+
+/* responsive */
+@media(max-width:900px){
+  .bento{grid-template-columns:repeat(6,1fr)}
+  .c7,.c8,.c9,.c12{grid-column:span 6}
+  .detail-panel{width:100%}
+  .matchup-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .bento{grid-template-columns:1fr}
+  .c1,.c2,.c3,.c4,.c5,.c6,.c7,.c8,.c9,.c12{grid-column:span 1}
+  .nav-bar{flex-direction:column;gap:8px}
+  .hero-cell h1{font-size:2rem}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav-bar">
+  <div class="nav-logo"><i data-lucide="swords"></i> Jaipur Arena</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showView('dashboard')"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+    <button class="nav-tab" onclick="showView('tournament')"><i data-lucide="trophy"></i> Tournament</button>
+    <button class="nav-tab" onclick="showView('leaderboard')"><i data-lucide="bar-chart-3"></i> Leaderboard</button>
+  </div>
+</div>
+
+<!-- ==================== DASHBOARD VIEW ==================== -->
+<div id="view-dashboard" class="view active">
+<div class="bento">
+
+  <!-- Hero -->
+  <div class="cell c5 r2 hero-cell">
+    <h1>Jaipur Arena</h1>
+    <p style="margin-bottom:12px">AI agents battle in the ancient marketplace. Neural networks, greedy heuristics, tree search, and chaos collide.</p>
+    <div class="btns">
+      <button class="btn btn-lg btn-pill" style="background:var(--lavender);color:white;border-color:rgba(255,255,255,.3)" onclick="openConfig()">
+        <i data-lucide="play"></i> New Tournament
+      </button>
+      <button class="btn btn-pill" style="background:rgba(255,255,255,.12);color:white;border-color:rgba(255,255,255,.15)" onclick="showView('leaderboard')">
+        <i data-lucide="bar-chart-3"></i> Rankings
+      </button>
+    </div>
+  </div>
+
+  <!-- Season stats -->
+  <div class="cell c7 r2">
+    <div class="cl"><i data-lucide="activity"></i> Season Overview</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+      <div>
+        <div class="stat-big" id="stat-games">0</div>
+        <div class="stat-label">Games Played</div>
+      </div>
+      <div>
+        <div class="stat-big" id="stat-tournaments">0</div>
+        <div class="stat-label">Tournaments</div>
+      </div>
+      <div>
+        <div class="stat-big" id="stat-avg">0</div>
+        <div class="stat-label">Avg Turns/Game</div>
+      </div>
+    </div>
+    <div class="cl" style="margin-top:8px"><i data-lucide="clock"></i> Recent Activity</div>
+    <div style="font-size:.8rem;color:var(--tx2);line-height:1.8">
+      <div style="display:flex;align-items:center;gap:6px"><span class="pulse-dot"></span> Neural defeated MCTS (62-38) <span style="color:var(--tx3);margin-left:auto">2h ago</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><i data-lucide="check-circle" style="width:12px;height:12px;color:var(--mint)"></i> Tournament #7 completed <span style="color:var(--tx3);margin-left:auto">5h ago</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><i data-lucide="trending-up" style="width:12px;height:12px;color:var(--lavender)"></i> Greedy Elo peak: 1584 <span style="color:var(--tx3);margin-left:auto">1d ago</span></div>
+    </div>
+  </div>
+
+  <!-- Agent Roster -->
+  <div class="cell c12">
+    <div class="cl"><i data-lucide="users"></i> Agent Roster</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px" id="agent-roster">
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ==================== TOURNAMENT VIEW ==================== -->
+<div id="view-tournament" class="view">
+<div class="bento">
+
+  <div class="cell c12">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <div class="cl"><i data-lucide="swords"></i> Live Tournament</div>
+        <div style="font-size:.85rem;color:var(--tx2)" id="tournament-status">No tournament running</div>
+      </div>
+      <div class="btns">
+        <button class="btn btn-p" onclick="openConfig()"><i data-lucide="play"></i> New Tournament</button>
+      </div>
+    </div>
+    <div id="matchup-container" class="matchup-grid">
+      <div style="text-align:center;padding:40px;color:var(--tx3);grid-column:1/-1">
+        <i data-lucide="inbox" style="width:32px;height:32px;margin-bottom:8px"></i>
+        <div style="font-size:.85rem">Start a tournament to see matchups here</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tournament Progress -->
+  <div class="cell c8" id="tournament-progress-cell" style="display:none">
+    <div class="cl"><i data-lucide="activity"></i> Tournament Progress</div>
+    <div id="tournament-progress-bar">
+      <div class="prog-row"><span>Overall</span><span id="prog-pct">0%</span></div>
+      <div class="prog" style="height:10px"><div class="prog-fill" style="width:0%;background:var(--lavender)" id="prog-fill"></div></div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:12px" id="tournament-live-stats">
+      <div><div class="stat-big" id="live-completed">0</div><div class="stat-label">Completed</div></div>
+      <div><div class="stat-big" id="live-remaining">0</div><div class="stat-label">Remaining</div></div>
+      <div><div class="stat-big" id="live-upsets">0</div><div class="stat-label">Upsets</div></div>
+    </div>
+  </div>
+
+  <div class="cell c4" id="tournament-motd-cell" style="display:none">
+    <div class="motd">
+      <h4><i data-lucide="flame"></i> Match of the Day</h4>
+      <div id="motd-content" style="font-size:.82rem;color:var(--tx2);margin-top:6px"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ==================== LEADERBOARD VIEW ==================== -->
+<div id="view-leaderboard" class="view">
+<div class="bento">
+
+  <!-- Elo Table -->
+  <div class="cell c7">
+    <div class="cl"><i data-lucide="trophy"></i> Elo Ratings</div>
+    <table class="tbl" id="elo-table">
+      <thead><tr><th style="width:50px">Rank</th><th>Agent</th><th>Elo</th><th>W/L</th><th>Win Rate</th></tr></thead>
+      <tbody id="elo-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Win Rate Matrix -->
+  <div class="cell c5">
+    <div class="cl"><i data-lucide="grid-3x3"></i> Win Rate Matrix</div>
+    <div id="heatmap-container"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="cell c4">
+    <div class="cl"><i data-lucide="bar-chart-3"></i> Win Distribution</div>
+    <div class="bar-chart" id="win-chart"></div>
+  </div>
+
+  <div class="cell c4">
+    <div class="cl"><i data-lucide="target"></i> Elo History</div>
+    <div id="elo-history-chart" style="position:relative;height:120px"></div>
+  </div>
+
+  <div class="cell c4">
+    <div class="cl"><i data-lucide="award"></i> Records</div>
+    <div id="records-list" style="font-size:.8rem;line-height:2;color:var(--tx2)"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ==================== AGENT DETAIL PANEL ==================== -->
+<div class="detail-panel" id="detail-panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div class="cl" style="margin-bottom:0"><i data-lucide="user"></i> Agent Detail</div>
+    <button class="btn btn-g" onclick="closeDetail()" style="padding:4px 8px"><i data-lucide="x"></i></button>
+  </div>
+  <div id="detail-content"></div>
+</div>
+
+<!-- ==================== CONFIG OVERLAY ==================== -->
+<div class="config-overlay" id="config-overlay" onclick="if(event.target===this)closeConfig()">
+  <div class="config-panel">
+    <h3>New Tournament</h3>
+    <div class="sub">Select agents and configure the bracket</div>
+
+    <div class="inp-label" style="margin-bottom:8px">Agents</div>
+    <div id="config-agents"></div>
+
+    <div style="margin-top:16px">
+      <div class="inp-label">Matches per pair</div>
+      <div class="range-wrap">
+        <input type="range" min="10" max="500" value="100" step="10" id="match-count" oninput="document.getElementById('match-val').textContent=this.value">
+        <div class="range-val" id="match-val">100</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-g" onclick="closeConfig()">Cancel</button>
+      <button class="btn btn-p btn-lg" onclick="startTournament()" id="start-btn">
+        <i data-lucide="play"></i> Start Tournament
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// === AGENTS DATA ===
+const AGENTS = [
+  { id: 'neural', name: 'Neural', short: 'N', color: '#6366f1', desc: 'TD-learning neural network', icon: 'brain', baseElo: 1620, winRate: .68 },
+  { id: 'greedy', name: 'Greedy', short: 'G', color: '#4aba8a', desc: 'Heuristic value maximizer', icon: 'zap', baseElo: 1580, winRate: .62 },
+  { id: 'mcts',   name: 'MCTS',   short: 'M', color: '#d4915c', desc: 'Monte Carlo tree search', icon: 'git-branch', baseElo: 1545, winRate: .58 },
+  { id: 'random', name: 'Random', short: 'R', color: '#818cf8', desc: 'Uniform random policy', icon: 'shuffle', baseElo: 1255, winRate: .22 }
+];
+
+// Historical fake data
+let eloRatings = {};
+let matchResults = {};
+let totalGames = 2847;
+let totalTournaments = 7;
+
+AGENTS.forEach(a => {
+  eloRatings[a.id] = a.baseElo;
+});
+
+// Pairwise win rates (agent1 vs agent2 => agent1 win%)
+const BASE_WINRATES = {
+  'neural-greedy': .56, 'neural-mcts': .62, 'neural-random': .89,
+  'greedy-mcts': .57, 'greedy-random': .86,
+  'mcts-random': .82
+};
+
+function getWinRate(a, b) {
+  const key1 = a + '-' + b;
+  const key2 = b + '-' + a;
+  if (BASE_WINRATES[key1] !== undefined) return BASE_WINRATES[key1];
+  if (BASE_WINRATES[key2] !== undefined) return 1 - BASE_WINRATES[key2];
+  return .5;
+}
+
+// === VIEW SWITCHING ===
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.textContent.trim().toLowerCase().includes(name.substring(0, 4))) t.classList.add('active');
+  });
+  if (name === 'leaderboard') renderLeaderboard();
+  lucide.createIcons();
+}
+
+// === RENDER DASHBOARD ===
+function renderRoster() {
+  const el = document.getElementById('agent-roster');
+  el.innerHTML = AGENTS.map(a => `
+    <div class="agent-card" onclick="openDetail('${a.id}')">
+      <div class="agent-ava" style="background:${a.color}">
+        <i data-lucide="${a.icon}" style="width:24px;height:24px"></i>
+      </div>
+      <div class="agent-name">${a.name}</div>
+      <div class="agent-desc">${a.desc}</div>
+      <div style="margin:6px 0">
+        <span class="badge ${a.winRate > .6 ? 'b-mint' : a.winRate > .4 ? 'b-lemon' : 'b-rose'}" style="font-size:.6rem">
+          <i data-lucide="${a.winRate > .6 ? 'trending-up' : a.winRate > .4 ? 'minus' : 'trending-down'}"></i>
+          ${(a.winRate * 100).toFixed(0)}% win rate
+        </span>
+      </div>
+      <div class="agent-stat">Elo ${eloRatings[a.id]}</div>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+function animateCounter(el, target, duration) {
+  const start = 0;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(start + (target - start) * eased);
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function animateDashboardStats() {
+  animateCounter(document.getElementById('stat-games'), totalGames, 1200);
+  animateCounter(document.getElementById('stat-tournaments'), totalTournaments, 800);
+  animateCounter(document.getElementById('stat-avg'), 23, 600);
+}
+
+// === CONFIG ===
+let selectedAgents = new Set(AGENTS.map(a => a.id));
+
+function openConfig() {
+  const el = document.getElementById('config-agents');
+  el.innerHTML = AGENTS.map(a => `
+    <label class="agent-check ${selectedAgents.has(a.id) ? 'checked' : ''}" onclick="toggleAgent('${a.id}', this)">
+      <input type="checkbox" ${selectedAgents.has(a.id) ? 'checked' : ''}>
+      <div class="mini-ava" style="background:${a.color}"><i data-lucide="${a.icon}" style="width:14px;height:14px"></i></div>
+      <span class="aname">${a.name}</span>
+      <span style="margin-left:auto;font-family:var(--mono);font-size:.7rem;color:var(--tx3)">Elo ${eloRatings[a.id]}</span>
+    </label>
+  `).join('');
+  document.getElementById('config-overlay').classList.add('open');
+  lucide.createIcons();
+}
+
+function closeConfig() {
+  document.getElementById('config-overlay').classList.remove('open');
+}
+
+function toggleAgent(id, label) {
+  if (selectedAgents.has(id)) { selectedAgents.delete(id); label.classList.remove('checked'); }
+  else { selectedAgents.add(id); label.classList.add('checked'); }
+  label.querySelector('input').checked = selectedAgents.has(id);
+}
+
+// === TOURNAMENT SIMULATION ===
+let tournamentRunning = false;
+let tournamentMatchups = [];
+let completedMatchups = 0;
+
+function startTournament() {
+  if (selectedAgents.size < 2) return;
+  closeConfig();
+  showView('tournament');
+
+  const agents = AGENTS.filter(a => selectedAgents.has(a.id));
+  const matchCount = parseInt(document.getElementById('match-count').value);
+  tournamentMatchups = [];
+  completedMatchups = 0;
+  tournamentRunning = true;
+
+  // Generate all pairs
+  for (let i = 0; i < agents.length; i++) {
+    for (let j = i + 1; j < agents.length; j++) {
+      tournamentMatchups.push({
+        a: agents[i], b: agents[j],
+        total: matchCount, winsA: 0, winsB: 0, done: 0, finished: false
+      });
+    }
+  }
+
+  document.getElementById('tournament-status').innerHTML = '<span class="pulse-dot"></span> Tournament in progress';
+  document.getElementById('tournament-progress-cell').style.display = '';
+  document.getElementById('tournament-motd-cell').style.display = '';
+
+  renderMatchups();
+  simulateMatches();
+}
+
+function renderMatchups() {
+  const container = document.getElementById('matchup-container');
+  container.innerHTML = tournamentMatchups.map((m, i) => `
+    <div class="matchup" id="matchup-${i}">
+      <div class="matchup-header">
+        <div class="matchup-agents">
+          <span class="ava" style="width:22px;height:22px;font-size:.55rem;background:${m.a.color}">${m.a.short}</span>
+          ${m.a.name}
+          <span class="matchup-vs">vs</span>
+          ${m.b.name}
+          <span class="ava" style="width:22px;height:22px;font-size:.55rem;background:${m.b.color}">${m.b.short}</span>
+        </div>
+        <span class="badge b-lemon" style="font-size:.55rem" id="matchup-badge-${i}">
+          <i data-lucide="clock"></i> Pending
+        </span>
+      </div>
+      <div class="matchup-score">
+        <span class="w" id="matchup-wa-${i}">0</span>
+        <span style="color:var(--tx3)">-</span>
+        <span class="l" id="matchup-wb-${i}">0</span>
+        <span style="color:var(--tx3);font-size:.7rem;font-weight:400;margin-left:auto" id="matchup-count-${i}">0/${m.total}</span>
+      </div>
+      <div class="matchup-prog">
+        <div class="matchup-prog-a" id="matchup-pa-${i}" style="width:50%"></div>
+        <div class="matchup-prog-b" id="matchup-pb-${i}" style="width:50%"></div>
+      </div>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+function simulateMatches() {
+  let matchIndex = 0;
+
+  function runNextBatch() {
+    if (matchIndex >= tournamentMatchups.length) {
+      finishTournament();
+      return;
+    }
+
+    const m = tournamentMatchups[matchIndex];
+    const winRate = getWinRate(m.a.id, m.b.id);
+    const badge = document.getElementById('matchup-badge-' + matchIndex);
+    badge.className = 'badge b-lav';
+    badge.innerHTML = '<span class="pulse-dot"></span> Live';
+    const idx = matchIndex;
+
+    let step = 0;
+    const batchSize = Math.max(1, Math.floor(m.total / 20));
+
+    function tick() {
+      if (step >= m.total) {
+        m.finished = true;
+        completedMatchups++;
+        const aWon = m.winsA > m.winsB;
+        const badge = document.getElementById('matchup-badge-' + idx);
+        badge.className = 'badge ' + (aWon ? 'b-mint' : 'b-rose');
+        badge.innerHTML = (aWon ? '<i data-lucide="check-circle"></i> ' + m.a.name : '<i data-lucide="check-circle"></i> ' + m.b.name) + ' wins';
+        lucide.createIcons();
+        updateProgress();
+        matchIndex++;
+        setTimeout(runNextBatch, 200);
+        return;
+      }
+
+      // Simulate batch
+      for (let b = 0; b < batchSize && step < m.total; b++, step++) {
+        if (Math.random() < winRate + (Math.random() - .5) * .08) m.winsA++;
+        else m.winsB++;
+        m.done++;
+      }
+
+      // Update UI
+      document.getElementById('matchup-wa-' + idx).textContent = m.winsA;
+      document.getElementById('matchup-wb-' + idx).textContent = m.winsB;
+      document.getElementById('matchup-count-' + idx).textContent = m.done + '/' + m.total;
+      const totalDone = m.winsA + m.winsB;
+      if (totalDone > 0) {
+        document.getElementById('matchup-pa-' + idx).style.width = (m.winsA / totalDone * 100) + '%';
+        document.getElementById('matchup-pb-' + idx).style.width = (m.winsB / totalDone * 100) + '%';
+      }
+
+      updateProgress();
+      setTimeout(tick, 60);
+    }
+
+    tick();
+  }
+
+  runNextBatch();
+}
+
+function updateProgress() {
+  const total = tournamentMatchups.reduce((s, m) => s + m.total, 0);
+  const done = tournamentMatchups.reduce((s, m) => s + m.done, 0);
+  const pct = Math.round(done / total * 100);
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('live-completed').textContent = completedMatchups;
+  document.getElementById('live-remaining').textContent = tournamentMatchups.length - completedMatchups;
+
+  // Count upsets (lower elo wins)
+  let upsets = 0;
+  tournamentMatchups.forEach(m => {
+    if (m.finished) {
+      const aHigher = eloRatings[m.a.id] >= eloRatings[m.b.id];
+      if ((aHigher && m.winsB > m.winsA) || (!aHigher && m.winsA > m.winsB)) upsets++;
+    }
+  });
+  document.getElementById('live-upsets').textContent = upsets;
+
+  // Match of the day: closest matchup
+  let closest = null, closestDiff = Infinity;
+  tournamentMatchups.forEach(m => {
+    if (m.finished) {
+      const diff = Math.abs(m.winsA - m.winsB);
+      if (diff < closestDiff) { closestDiff = diff; closest = m; }
+    }
+  });
+  if (closest) {
+    document.getElementById('motd-content').innerHTML =
+      `<strong>${closest.a.name}</strong> vs <strong>${closest.b.name}</strong><br>` +
+      `${closest.winsA} - ${closest.winsB} (${closestDiff} game${closestDiff !== 1 ? 's' : ''} apart)`;
+  }
+}
+
+function finishTournament() {
+  tournamentRunning = false;
+  document.getElementById('tournament-status').innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;color:var(--mint)"></i> Tournament complete';
+  lucide.createIcons();
+
+  // Update elo ratings
+  tournamentMatchups.forEach(m => {
+    const expectedA = 1 / (1 + Math.pow(10, (eloRatings[m.b.id] - eloRatings[m.a.id]) / 400));
+    const scoreA = m.winsA / (m.winsA + m.winsB);
+    const k = 32;
+    eloRatings[m.a.id] = Math.round(eloRatings[m.a.id] + k * (scoreA - expectedA));
+    eloRatings[m.b.id] = Math.round(eloRatings[m.b.id] + k * ((1 - scoreA) - (1 - expectedA)));
+  });
+
+  totalGames += tournamentMatchups.reduce((s, m) => s + m.total, 0);
+  totalTournaments++;
+}
+
+// === LEADERBOARD ===
+function renderLeaderboard() {
+  // Sort agents by elo
+  const sorted = [...AGENTS].sort((a, b) => eloRatings[b.id] - eloRatings[a.id]);
+  const rankBadges = ['b-lemon', 'b-sky', 'b-peach', 'b-lav'];
+  const rankIcons = ['crown', 'medal', 'award', 'star'];
+
+  const tbody = document.getElementById('elo-body');
+  tbody.innerHTML = sorted.map((a, i) => {
+    const totalW = Object.keys(BASE_WINRATES).reduce((s, k) => {
+      const [x, y] = k.split('-');
+      if (x === a.id) return s + Math.round(BASE_WINRATES[k] * 100);
+      if (y === a.id) return s + Math.round((1 - BASE_WINRATES[k]) * 100);
+      return s;
+    }, 0);
+    const totalL = 300 - totalW;
+    return `<tr style="cursor:pointer" onclick="openDetail('${a.id}')">
+      <td class="rank-cell">
+        <span class="badge ${rankBadges[i]}" style="font-size:.6rem"><i data-lucide="${rankIcons[i]}"></i> #${i+1}</span>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="ava" style="width:28px;height:28px;font-size:.6rem;background:${a.color}"><i data-lucide="${a.icon}" style="width:14px;height:14px"></i></span>
+          <strong style="color:var(--ink)">${a.name}</strong>
+        </div>
+      </td>
+      <td><span style="font-family:var(--mono);font-weight:700;color:var(--ink)">${eloRatings[a.id]}</span></td>
+      <td><span style="color:#065f46">${totalW}</span> / <span style="color:#9f1239">${totalL}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="prog" style="flex:1;margin:0;height:6px"><div class="prog-fill" style="width:${(totalW/300*100)}%;background:${a.color}"></div></div>
+          <span style="font-family:var(--mono);font-size:.7rem">${(totalW/300*100).toFixed(0)}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Heatmap
+  renderHeatmap(sorted);
+  renderWinChart(sorted);
+  renderEloHistory(sorted);
+  renderRecords(sorted);
+  lucide.createIcons();
+}
+
+function renderHeatmap(sorted) {
+  const container = document.getElementById('heatmap-container');
+  let html = '<table class="heatmap"><thead><tr><th></th>';
+  sorted.forEach(a => html += `<th>${a.short}</th>`);
+  html += '</tr></thead><tbody>';
+
+  sorted.forEach(a => {
+    html += `<tr><td class="row-label">${a.name}</td>`;
+    sorted.forEach(b => {
+      if (a.id === b.id) {
+        html += '<td style="background:var(--ink);color:white;border-color:var(--ink2)">-</td>';
+      } else {
+        const wr = getWinRate(a.id, b.id);
+        const intensity = Math.round(wr * 100);
+        let bg, fg;
+        if (wr > .5) {
+          const alpha = (wr - .5) * 2;
+          bg = `rgba(74,186,138,${alpha * .4 + .1})`;
+          fg = '#065f46';
+        } else {
+          const alpha = (.5 - wr) * 2;
+          bg = `rgba(194,24,91,${alpha * .4 + .1})`;
+          fg = '#9f1239';
+        }
+        html += `<td style="background:${bg};color:${fg}">${intensity}%</td>`;
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderWinChart(sorted) {
+  const chart = document.getElementById('win-chart');
+  chart.innerHTML = sorted.map(a => {
+    const pct = a.winRate * 100;
+    return `
+      <div class="bar-col">
+        <div class="bar-val">${pct.toFixed(0)}%</div>
+        <div class="bar" style="height:${pct}%;background:${a.color}"></div>
+        <div class="bar-label">${a.name}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderEloHistory(sorted) {
+  // Pure CSS/SVG sparkline-style chart
+  const container = document.getElementById('elo-history-chart');
+  const w = 280, h = 110;
+  const minElo = 1200, maxElo = 1700;
+
+  let svg = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:100%">`;
+
+  sorted.forEach(a => {
+    // Generate fake history (8 data points)
+    const points = [];
+    let elo = a.baseElo - 60 + Math.random() * 30;
+    for (let i = 0; i < 8; i++) {
+      elo += (Math.random() - .4) * 25;
+      elo = Math.max(minElo, Math.min(maxElo, elo));
+      if (i === 7) elo = eloRatings[a.id];
+      const x = (i / 7) * (w - 20) + 10;
+      const y = h - ((elo - minElo) / (maxElo - minElo)) * (h - 20) - 10;
+      points.push(`${x},${y}`);
+    }
+    svg += `<polyline points="${points.join(' ')}" fill="none" stroke="${a.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>`;
+    // End dot
+    const last = points[points.length - 1].split(',');
+    svg += `<circle cx="${last[0]}" cy="${last[1]}" r="4" fill="${a.color}" stroke="white" stroke-width="2"/>`;
+  });
+
+  svg += '</svg>';
+  // Legend
+  svg += '<div style="display:flex;gap:10px;justify-content:center;margin-top:4px">';
+  sorted.forEach(a => {
+    svg += `<span style="font-size:.65rem;color:var(--tx2);display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:${a.color};display:inline-block"></span>${a.short}</span>`;
+  });
+  svg += '</div>';
+  container.innerHTML = svg;
+}
+
+function renderRecords(sorted) {
+  const el = document.getElementById('records-list');
+  const best = sorted[0];
+  const worst = sorted[sorted.length - 1];
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px"><i data-lucide="crown" style="width:13px;height:13px;color:var(--lemon)"></i> <strong>Highest Elo:</strong> ${best.name} (${eloRatings[best.id]})</div>
+    <div style="display:flex;align-items:center;gap:6px"><i data-lucide="flame" style="width:13px;height:13px;color:var(--peach)"></i> <strong>Win Streak:</strong> Neural (14 games)</div>
+    <div style="display:flex;align-items:center;gap:6px"><i data-lucide="swords" style="width:13px;height:13px;color:var(--lavender)"></i> <strong>Rivalries:</strong> Neural vs Greedy (312 games)</div>
+    <div style="display:flex;align-items:center;gap:6px"><i data-lucide="trending-up" style="width:13px;height:13px;color:var(--mint)"></i> <strong>Biggest Upset:</strong> Random beat MCTS (54-46)</div>
+  `;
+  lucide.createIcons();
+}
+
+// === AGENT DETAIL ===
+function openDetail(agentId) {
+  const agent = AGENTS.find(a => a.id === agentId);
+  const panel = document.getElementById('detail-panel');
+  const content = document.getElementById('detail-content');
+
+  const opponents = AGENTS.filter(a => a.id !== agentId);
+
+  content.innerHTML = `
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="agent-ava" style="background:${agent.color};width:64px;height:64px;font-size:1.3rem;margin:0 auto 10px">
+        <i data-lucide="${agent.icon}" style="width:28px;height:28px"></i>
+      </div>
+      <div style="font-family:var(--serif);font-size:1.4rem;color:var(--ink)">${agent.name}</div>
+      <div style="font-size:.8rem;color:var(--tx3);margin-bottom:8px">${agent.desc}</div>
+      <div style="display:flex;justify-content:center;gap:8px">
+        <span class="badge b-lav"><i data-lucide="target"></i> Elo ${eloRatings[agent.id]}</span>
+        <span class="badge ${agent.winRate > .5 ? 'b-mint' : 'b-rose'}"><i data-lucide="percent"></i> ${(agent.winRate*100).toFixed(0)}% WR</span>
+      </div>
+    </div>
+
+    <div class="cl"><i data-lucide="bar-chart-3"></i> Performance</div>
+    <div class="bar-chart" style="height:80px;margin-bottom:20px">
+      ${opponents.map(opp => {
+        const wr = getWinRate(agentId, opp.id);
+        return `<div class="bar-col">
+          <div class="bar-val">${(wr*100).toFixed(0)}%</div>
+          <div class="bar" style="height:${wr*100}%;background:${wr > .5 ? 'var(--mint)' : 'var(--rose)'}"></div>
+          <div class="bar-label">${opp.short}</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="cl"><i data-lucide="swords"></i> Head-to-Head</div>
+    ${opponents.map(opp => {
+      const wr = getWinRate(agentId, opp.id);
+      const games = 100;
+      const wins = Math.round(wr * games);
+      const losses = games - wins;
+      return `<div class="h2h-row">
+        <span class="ava" style="width:22px;height:22px;font-size:.5rem;background:${opp.color}">${opp.short}</span>
+        <span style="font-size:.8rem;font-weight:600;color:var(--ink);min-width:55px">${opp.name}</span>
+        <div class="h2h-bar">
+          <div class="h2h-fill" style="width:${wr*100}%;background:${wr > .5 ? 'var(--mint)' : 'var(--rose)'}"></div>
+        </div>
+        <span style="font-family:var(--mono);font-size:.7rem;color:var(--tx2);min-width:50px;text-align:right">${wins}-${losses}</span>
+      </div>`;
+    }).join('')}
+
+    <div style="margin-top:20px">
+      <div class="cl"><i data-lucide="award"></i> Stats</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="cell" style="padding:12px;text-align:center">
+          <div style="font-family:var(--serif);font-size:1.3rem;color:var(--ink)">14</div>
+          <div style="font-size:.65rem;color:var(--tx3);text-transform:uppercase">Best Streak</div>
+        </div>
+        <div class="cell" style="padding:12px;text-align:center">
+          <div style="font-family:var(--serif);font-size:1.3rem;color:var(--ink)">${(agent.winRate > .5 ? opponents.reduce((b, o) => getWinRate(agentId, o.id) > getWinRate(agentId, b.id) ? o : b, opponents[0]).name : 'N/A')}</div>
+          <div style="font-size:.65rem;color:var(--tx3);text-transform:uppercase">Best Matchup</div>
+        </div>
+        <div class="cell" style="padding:12px;text-align:center">
+          <div style="font-family:var(--serif);font-size:1.3rem;color:var(--ink)">${opponents.reduce((w, o) => getWinRate(agentId, o.id) < getWinRate(agentId, w.id) ? o : w, opponents[0]).name}</div>
+          <div style="font-size:.65rem;color:var(--tx3);text-transform:uppercase">Worst Matchup</div>
+        </div>
+        <div class="cell" style="padding:12px;text-align:center">
+          <div style="font-family:var(--serif);font-size:1.3rem;color:var(--ink)">${Math.round(totalGames / AGENTS.length)}</div>
+          <div style="font-size:.65rem;color:var(--tx3);text-transform:uppercase">Games Played</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  panel.classList.add('open');
+  lucide.createIcons();
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+// Close detail on click outside
+document.addEventListener('click', e => {
+  const panel = document.getElementById('detail-panel');
+  if (panel.classList.contains('open') && !panel.contains(e.target) && !e.target.closest('.agent-card') && !e.target.closest('.tbl')) {
+    closeDetail();
+  }
+});
+
+// === INIT ===
+document.addEventListener('DOMContentLoaded', () => {
+  renderRoster();
+  animateDashboardStats();
+  lucide.createIcons();
+});
+</script>
+</body>
+</html>
